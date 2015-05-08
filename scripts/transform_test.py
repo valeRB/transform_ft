@@ -3,15 +3,14 @@ import roslib
 #roslib.load_manifest('cs225b')
 import rospy
 import math
-#import tf
-#from tf.transformations import euler_from_quaternion
 from geometry_msgs.msg import WrenchStamped
 import numpy as np
-##from std_srvs.srv import Empty
+
 
 alpha = 1.222
 pub_l = rospy.Publisher("/ft_transformed/lef_arm",WrenchStamped)
-pub_r = rospy.Publisher("/ft_transformed/rig_arm",WrenchStamped)
+##pub_r = rospy.Publisher("/ft_transformed/rig_arm",WrenchStamped)
+##pub_l = rospy.Publisher("/ft_transformed/rig_arm",WrenchStamped)
 
 # Initialization of variables for RIGHT ARM
 wrench_aligned_r = WrenchStamped()
@@ -40,13 +39,27 @@ Fz_l = 0
 Tx_l = 0
 Ty_l = 0
 Tz_l = 0
+# --- Compute bias -----
+bias_computed_l = 0
 bias_Fx_l = 0
 bias_Fy_l = 0
 bias_Fz_l = 0
 bias_Tx_l = 0
 bias_Ty_l = 0
 bias_Tz_l = 0
-bias_computed_l = 0
+# ----------------------
+
+# --- Known bias -----
+##bias_computed_l = 1
+##bias_Fx_l = 14.7566
+##bias_Fy_l = -5.2744
+##bias_Fz_l = 32.3773
+##bias_Tx_l = -0.1050
+##bias_Ty_l = -1.0453
+##bias_Tz_l = -0.3155
+# ---------------------
+
+
 counter_l = 0
 
 def callback_right_arm(msg):
@@ -74,6 +87,7 @@ def callback_right_arm(msg):
         wrench_aligned_r.wrench.torque.y = -(unbiased_Tx*math.sin(alpha)) - (unbiased_Ty*math.cos(alpha))
         pub_r.publish(wrench_aligned_r)
     return
+
 
 def get_bias_r(wrench_aligned):
     global Fx_r, Fy_r, Fz_r, counter_r, bias_computed_r, bias_Fx_r, bias_Fy_r, bias_Fz_r
@@ -145,31 +159,18 @@ def get_bias_l(wrench_aligned):
     
 def transform_test():
 
-    # In ROS, nodes are uniquely named. If two nodes with the same
-    # node are launched, the previous one is kicked off. The
-    # anonymous=True flag means that rospy will choose a unique
-    # name for our 'listener' node so that multiple listeners can
-    # run simultaneously.
     rospy.init_node('transform_test', anonymous=True)
     
-    rospy.Subscriber("/ft/r_gripper_motor", WrenchStamped, callback_right_arm)
+##    rospy.Subscriber("/ft/r_gripper_motor", WrenchStamped, callback_right_arm)
     
-##    rospy.Subscriber("/ft/l_gripper_motor", WrenchStamped, callback_left_arm)
+    rospy.Subscriber("/ft/l_gripper_motor", WrenchStamped, callback_left_arm)
     ### Test left callback function with right arm topic
-    #rospy.Subscriber("/ft/r_gripper_motor", WrenchStamped, callback_left_arm)
+##    rospy.Subscriber("/ft/r_gripper_motor", WrenchStamped, callback_left_arm)
     
     rospy.spin()
-
-##def start_client():
-##    rospy.wait_for_service('start')
-##    try:
-##        start_estimation = rospy.ServiceProxy('start', Empty)
-##        start_estimation()
-##    except rospy.ServiceException, e:
-##        print "Service call failed: %s"%e
     
 if __name__ == '__main__':
-##    start_client()
+
     transform_test()
 
     try:
